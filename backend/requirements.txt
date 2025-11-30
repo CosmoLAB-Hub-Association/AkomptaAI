@@ -1,29 +1,36 @@
-# Django & DRF
-Django==5.0.1
-djangorestframework==3.14.0
-django-filter==23.5
-
-# Authentication
-djangorestframework-simplejwt==5.3.1
-
-# CORS
+annotated-types==0.7.0
+anyio==4.12.0
+asgiref==3.11.0
+cachetools==6.2.2
+certifi==2025.11.12
+charset-normalizer==3.4.4
+Django==5.2.8
 django-cors-headers==4.3.1
-
-# Database
-psycopg2-binary==2.9.9
-
-# Image handling
-Pillow==10.2.0
-
-# Environment variables
-python-decouple==3.8
-
-# Production server
+django-filter==23.5
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+google-auth==2.43.0
+google-genai==1.52.0
 gunicorn==21.2.0
-
-# Gemini AI Integration
-google-genai>=1.52.0
-
-# Storage (optional - pour AWS S3 si besoin)
-# django-storages==1.14.2
-# boto3==1.34.22
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.28.1
+idna==3.11
+packaging==25.0
+pillow==10.2.0
+psycopg2-binary==2.9.9
+pyasn1==0.6.1
+pyasn1_modules==0.4.2
+pydantic==2.12.5
+pydantic_core==2.41.5
+PyJWT==2.10.1
+python-decouple==3.8
+pytz==2025.2
+requests==2.32.5
+rsa==4.9.1
+sqlparse==0.5.3
+tenacity==9.1.2
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+urllib3==2.5.0
+websockets==15.0.1
