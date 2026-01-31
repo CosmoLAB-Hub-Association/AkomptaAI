@@ -257,7 +257,13 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@akompta.com')
 
 # Security Settings for Production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # IMPORTANT: Ne pas activer SECURE_SSL_REDIRECT sur Hugging Face Spaces
+    # Le reverse proxy de HF gère déjà HTTPS, activer cette option cause une boucle de redirection
+    SECURE_SSL_REDIRECT = False
+    
+    # Permet à Django de reconnaître les requêtes HTTPS via le proxy
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
