@@ -5,6 +5,7 @@ colorFrom: green
 colorTo: blue
 sdk: docker
 pinned: false
+app_port: 7860
 ---
 
 # Akompta AI - Backend API
@@ -13,16 +14,16 @@ Ceci est le backend de l'application **Akompta AI**, une plateforme de gestion f
 
 ## 🚀 Déploiement sur Hugging Face Spaces
 
-Ce backend est configuré pour s'exécuter dans un conteneur Docker sur Hugging Face Spaces.
+Ce backend est configuré pour s'exécuter dans un conteneur Docker.
 
 ### Configuration requise (Variables d'environnement)
 
-Pour que l'API fonctionne correctement, assurez-vous de configurer les variables suivantes dans les "Settings" de votre Space :
+Assurez-vous de configurer les variables suivantes dans les "Settings" de votre Space :
 
 - `DEBUG`: `False`
 - `SECRET_KEY`: Votre clé secrète Django
 - `ALLOWED_HOSTS`: `*`
-- `CORS_ALLOWED_ORIGINS`: `https://akompta-ai-flame.vercel.app` (ou l'URL de votre frontend)
+- `CORS_ALLOWED_ORIGINS`: `https://akompta-ai-flame.vercel.app`
 - `GEMINI_API_KEY`: Votre clé API Google Gemini
 
 ## 🛠️ Technologies utilisées
@@ -32,20 +33,6 @@ Pour que l'API fonctionne correctement, assurez-vous de configurer les variables
 - **Base de données**: SQLite
 - **Serveur de production**: Gunicorn
 - **Statique**: WhiteNoise
-
-## 📂 Structure du Backend
-
-- `Akompta/`: Configuration du projet Django
-- `api/`: Application principale contenant les modèles, vues et logic métier
-- `static/`: Fichiers statiques collectés
-- `Dockerfile`: Configuration pour le déploiement
-- `start.sh`: Script de démarrage pour l'application
-
-## 🔗 Liens Utiles
-
-- **Documentation API**: [API_REFERENCE.md](../API_REFERENCE.md)
-- **Frontend Vercel**: [https://akompta-ai-flame.vercel.app](https://akompta-ai-flame.vercel.app)
-- **Organisation**: CosmoLAB Hub
 
 ---
 Développé par **Marino ATOHOUN** pour **CosmoLAB Hub**.
