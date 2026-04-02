@@ -1,9 +1,7 @@
 import axios from 'axios';
 import { UserProfile, Transaction, Product, Budget, Notification } from './types';
 
-export const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : 'https://cosmolabhub-akomptabackend.hf.space';
+export const BASE_URL = 'https://cosmolabhub-akomptabackend.hf.space';
 
 const API_URL = `${BASE_URL}/api`;
 
