@@ -180,7 +180,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description']
     
     def get_queryset(self):
-        return Product.objects.filter(user=self.request.user)
+        return Product.objects.filter(user=self.request.user).order_by('-created_at', '-id')
     
     @action(detail=False, methods=['get'])
     def export(self, request):
@@ -215,11 +215,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['type', 'category']
     search_fields = ['name', 'category']
-    ordering_fields = ['date', 'amount']
-    ordering = ['-date']
+    ordering_fields = ['date', 'amount', 'created_at']
+    ordering = ['-date', '-id']
     
     def get_queryset(self):
-        queryset = Transaction.objects.filter(user=self.request.user)
+        queryset = Transaction.objects.filter(user=self.request.user).order_by('-date', '-id')
         
         # Filtre par date range
         date_range = self.request.query_params.get('date_range')
@@ -522,7 +522,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return Budget.objects.filter(user=self.request.user)
+        return Budget.objects.filter(user=self.request.user).order_by('-created_at', '-id')
 
 
 # ========== ANNONCES ==========
@@ -536,7 +536,7 @@ class AdViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         # Les annonces sont publiques mais filtrées par vérification
-        return Ad.objects.filter(is_verified=True)
+        return Ad.objects.filter(is_verified=True).order_by('-created_at', '-id')
     
     def get_permissions(self):
         # Lecture publique, écriture authentifiée
@@ -553,7 +553,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        return Notification.objects.filter(user=self.request.user).order_by('-created_at', '-id')
     
     @action(detail=True, methods=['patch'])
     def mark_read(self, request, pk=None):
@@ -579,7 +579,7 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return SupportTicket.objects.filter(user=self.request.user)
+        return SupportTicket.objects.filter(user=self.request.user).order_by('-created_at', '-id')
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
