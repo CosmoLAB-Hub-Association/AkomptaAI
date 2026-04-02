@@ -13,6 +13,10 @@ interface Props {
 const NotificationScreen: React.FC<Props> = ({ onNavigate, onToggleMenu }) => {
   const { data: notifications, loading, markRead } = useNotifications();
 
+  const sortedNotifications = [...notifications].sort((a: any, b: any) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'reminder': return <AlertCircle size={20} />;
@@ -65,13 +69,13 @@ const NotificationScreen: React.FC<Props> = ({ onNavigate, onToggleMenu }) => {
           <div className="text-center py-8 text-white dark:text-gray-400">
             Chargement...
           </div>
-        ) : notifications.length === 0 ? (
+        ) : sortedNotifications.length === 0 ? (
           <div className="text-center py-8">
             <Bell size={48} className="mx-auto mb-4 text-white/50 dark:text-gray-500" />
             <p className="text-white dark:text-gray-400">Aucune notification</p>
           </div>
         ) : (
-          notifications.map((notification: any) => (
+          sortedNotifications.map((notification: any) => (
             <div
               key={notification.id}
               onClick={() => handleNotificationClick(notification)}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { UserProfile, Transaction, Product, Budget, Notification } from './types';
 
-export const BASE_URL = 'https://cosmolabhub-akomptabackend.hf.space';
+export const BASE_URL = 'http://127.0.0.1:8000';
 
 const API_URL = `${BASE_URL}/api`;
 

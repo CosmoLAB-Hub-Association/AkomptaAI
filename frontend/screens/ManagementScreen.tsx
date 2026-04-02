@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Screen, Product, Transaction } from '../types';
 import { Header } from '../components/Shared';
-import { Search, Heart, Mic, ShoppingBag, Plus, X, Edit, Trash2, AlertTriangle, Download, Save } from 'lucide-react';
+import { Search, Heart, Mic, ShoppingBag, Plus, X, Edit, Trash2, AlertTriangle, Download, Save, Loader2 } from 'lucide-react';
 import { useProducts, useTransactions } from '../hooks';
 
 interface Props {
@@ -163,34 +163,41 @@ const ManagementScreen: React.FC<Props> = ({ onNavigate, onToggleMenu }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editFormData, setEditFormData] = useState<Product | null>(null);
 
   // Mixed items (Products + Transactions) based on the active tab
-  const filteredItems = (() => {
-    if (activeTab === 'Produits') return products;
-    if (activeTab === 'Stock') return products.filter(p => p.category?.toLowerCase() === 'stock' || p.stockStatus === 'low' || p.stockStatus === 'rupture');
+  const sortedItems = useMemo(() => {
+    let items: any[] = [];
+    
+    if (activeTab === 'Produits') {
+      items = products;
+    } else if (activeTab === 'Stock') {
+      items = products.filter(p => p.category?.toLowerCase() === 'stock' || p.stockStatus === 'low' || p.stockStatus === 'rupture');
+    } else {
+      const catProducts = products.filter(product => {
+        const category = product.category?.toLowerCase() || '';
+        if (activeTab === 'Dépenses') return category === 'depense' || category === 'dépense';
+        if (activeTab === 'Vente') return category === 'vente';
+        return false;
+      });
 
-    const catProducts = products.filter(product => {
-      const category = product.category?.toLowerCase() || '';
-      if (activeTab === 'Dépenses') return category === 'depense' || category === 'dépense';
-      if (activeTab === 'Vente') return category === 'vente';
-      return false;
-    });
+      const catTransactions = transactions.filter(tx => {
+        if (activeTab === 'Vente') return tx.type === 'income';
+        if (activeTab === 'Dépenses') return tx.type === 'expense';
+        return false;
+      });
+      items = [...catProducts, ...catTransactions];
+    }
 
-    const catTransactions = transactions.filter(tx => {
-      if (activeTab === 'Vente') return tx.type === 'income';
-      if (activeTab === 'Dépenses') return tx.type === 'expense';
-      return false;
+    return [...items].sort((a: any, b: any) => {
+      const dateA = new Date(a.date || a.created_at || 0).getTime();
+      const dateB = new Date(b.date || b.created_at || 0).getTime();
+      return dateB - dateA;
     });
+  }, [activeTab, products, transactions]);
 
-    // We return a mixed list. We'll identify them by their structure in rendering.
-    return [...catProducts, ...catTransactions].sort((a: any, b: any) => {
-       // Sort by date/created_at if available
-       const dateA = new Date(a.date || (a as any).created_at || 0).getTime();
-       const dateB = new Date(b.date || (b as any).created_at || 0).getTime();
-       return dateB - dateA;
-    });
-  })();
+  const filteredItems = sortedItems;
 
   const handleDeleteProduct = async () => {
     if (selectedProduct && selectedProduct.id) {
@@ -235,22 +242,12 @@ const ManagementScreen: React.FC<Props> = ({ onNavigate, onToggleMenu }) => {
   };
 
   const handleSaveEdit = async () => {
-    if (editFormData) {
-      if (isCreating) {
-        // Create new product
-        await addProduct({
-          name: editFormData.name,
-          description: editFormData.description,
-          price: editFormData.price,
-          unit: editFormData.unit,
-          category: editFormData.category.toLowerCase().replace('é', 'e'),
-          stock_status: editFormData.stockStatus || 'ok'
-        });
-        setIsCreating(false);
-      } else {
-        // Update existing product
-        if (editFormData.id) {
-          await updateProduct(editFormData.id, {
+    if (editFormData && !isSaving) {
+      setIsSaving(true);
+      try {
+        if (isCreating) {
+          // Create new product
+          await addProduct({
             name: editFormData.name,
             description: editFormData.description,
             price: editFormData.price,
@@ -258,12 +255,29 @@ const ManagementScreen: React.FC<Props> = ({ onNavigate, onToggleMenu }) => {
             category: editFormData.category.toLowerCase().replace('é', 'e'),
             stock_status: editFormData.stockStatus || 'ok'
           });
+          setIsCreating(false);
+        } else {
+          // Update existing product
+          if (editFormData.id) {
+            await updateProduct(editFormData.id, {
+              name: editFormData.name,
+              description: editFormData.description,
+              price: editFormData.price,
+              unit: editFormData.unit,
+              category: editFormData.category.toLowerCase().replace('é', 'e'),
+              stock_status: editFormData.stockStatus || 'ok'
+            });
+          }
         }
-      }
 
-      setSelectedProduct(null);
-      setIsEditing(false);
-      setEditFormData(null);
+        setSelectedProduct(null);
+        setIsEditing(false);
+        setEditFormData(null);
+      } catch (error) {
+        console.error("Error saving product:", error);
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -539,9 +553,11 @@ const ManagementScreen: React.FC<Props> = ({ onNavigate, onToggleMenu }) => {
                   </button>
                   <button
                     onClick={handleSaveEdit}
-                    className="flex-1 py-3.5 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                    disabled={isSaving}
+                    className="flex-1 py-3.5 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <Save size={16} /> {isCreating ? 'Créer' : 'Enregistrer'}
+                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} 
+                    {isCreating ? (isSaving ? 'Création...' : 'Créer') : (isSaving ? 'Enregistrement...' : 'Enregistrer')}
                   </button>
                 </div>
               </div>

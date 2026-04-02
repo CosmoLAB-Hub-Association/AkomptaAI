@@ -80,10 +80,10 @@ const VoiceScreen: React.FC<Props> = ({
         
         if (result.transaction) {
           setStatus("Transaction ajoutée !");
-          onAddTransaction(result.transaction);
+          // No need to call onAddTransaction as the backend already saved it
         } else if (result.product) {
           setStatus("Produit ajouté !");
-          onAddProduct(result.product);
+          // No need to call onAddProduct as the backend already saved it
         }
 
         // Global refresh to update dashboard and management tabs
@@ -132,10 +132,10 @@ const VoiceScreen: React.FC<Props> = ({
         
         if (result.transaction) {
           setStatus("Transaction ajoutée !");
-          onAddTransaction(result.transaction);
+          // No need to call onAddTransaction because the backend already saved it
         } else if (result.product) {
           setStatus("Produit ajouté !");
-          onAddProduct(result.product);
+          // No need to call onAddProduct because the backend already saved it
         }
 
         onRefreshAll();

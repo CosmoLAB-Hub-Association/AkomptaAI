@@ -63,9 +63,9 @@ const WalletScreen: React.FC<Props> = ({ onNavigate, transactions, onToggleMenu,
 
   // Apply Search Filter on top of Time Range for display
   const filteredTransactions = useMemo(() => {
-    return transactionsInTimeRange.filter(tx =>
-      tx.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return transactionsInTimeRange
+      .filter(tx => tx.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactionsInTimeRange, searchQuery]);
 
   const handlePrintReport = () => {

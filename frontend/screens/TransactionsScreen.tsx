@@ -35,11 +35,13 @@ const TransactionsScreen: React.FC<Props> = ({ onNavigate, transactions, onToggl
     }
     
     // Sort logic
-    if (sortOrder === 'oldest') {
-        return [...result].reverse();
-    }
+    const sorted = [...result].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
 
-    return result;
+    return sorted;
   }, [transactions, filterType, searchQuery, sortOrder]);
 
   const handlePrintReceipt = (tx: Transaction) => {

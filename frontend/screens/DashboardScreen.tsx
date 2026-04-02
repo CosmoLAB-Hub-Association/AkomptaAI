@@ -5,7 +5,7 @@ import { MOCK_PRODUCTS } from '../constants';
 import { Header, Button, Input } from '../components/Shared';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { analytics } from '../api';
-import { Sparkles, RefreshCw, TrendingUp, AlertTriangle, PieChart as PieIcon, BarChart as BarIcon, Activity, Plus, Edit2, X, AlertCircle, ShoppingCart, Repeat, Users } from 'lucide-react';
+import { Sparkles, RefreshCw, TrendingUp, AlertTriangle, PieChart as PieIcon, BarChart as BarIcon, Activity, Plus, Edit2, X, AlertCircle, ShoppingCart, Repeat, Users, Loader2, Save } from 'lucide-react';
 
 interface Props {
   onNavigate: (screen: Screen) => void;
@@ -28,6 +28,7 @@ const DashboardScreen: React.FC<Props> = ({ onNavigate, onToggleMenu, isDarkMode
   // Budget State
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [newBudgetCategory, setNewBudgetCategory] = useState('');
   const [newBudgetLimit, setNewBudgetLimit] = useState('');
 
@@ -114,22 +115,34 @@ const DashboardScreen: React.FC<Props> = ({ onNavigate, onToggleMenu, isDarkMode
 
   const handleSaveBudget = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBudgetCategory || !newBudgetLimit) return;
+    if (!newBudgetCategory || !newBudgetLimit || isSaving) return;
 
-    const limit = parseFloat(newBudgetLimit);
+    setIsSaving(true);
+    try {
+      const limit = parseFloat(newBudgetLimit);
 
-    if (editingBudget) {
-      // Update logic would go here if API supported it fully (PATCH)
-      // For now we just refresh or handle add
-    } else {
-      await addBudget({
-        category: newBudgetCategory,
-        limit,
-        color: '#' + Math.floor(Math.random() * 16777215).toString(16)
-      });
+      if (editingBudget) {
+        // Update logic
+        if (editingBudget.id) {
+          await updateBudget(editingBudget.id, {
+            category: newBudgetCategory,
+            limit
+          });
+        }
+      } else {
+        await addBudget({
+          category: newBudgetCategory,
+          limit,
+          color: '#' + Math.floor(Math.random() * 16777215).toString(16)
+        });
+      }
+
+      closeBudgetModal();
+    } catch (error) {
+      console.error("Error saving budget:", error);
+    } finally {
+      setIsSaving(false);
     }
-
-    closeBudgetModal();
   };
 
   const openEditBudget = (budget: Budget) => {
@@ -525,9 +538,11 @@ const DashboardScreen: React.FC<Props> = ({ onNavigate, onToggleMenu, isDarkMode
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors"
+                  disabled={isSaving}
+                  className="flex-1 py-3.5 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  Enregistrer
+                  {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                  {isSaving ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
             </form>
