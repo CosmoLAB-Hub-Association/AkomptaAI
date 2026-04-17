@@ -4,8 +4,8 @@ import { Screen, Transaction, Budget } from '../types';
 import { MOCK_PRODUCTS } from '../constants';
 import { Header, Button, Input } from '../components/Shared';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { analytics } from '../api';
-import { Sparkles, RefreshCw, TrendingUp, AlertTriangle, PieChart as PieIcon, BarChart as BarIcon, Activity, Plus, Edit2, X, AlertCircle, ShoppingCart, Repeat, Users, Loader2, Save } from 'lucide-react';
+import { analytics, reports } from '../api';
+import { Sparkles, RefreshCw, TrendingUp, AlertTriangle, PieChart as PieIcon, BarChart as BarIcon, Activity, Plus, Edit2, X, AlertCircle, ShoppingCart, Repeat, Users, Loader2, Save, Download } from 'lucide-react';
 
 interface Props {
   onNavigate: (screen: Screen) => void;
@@ -24,6 +24,7 @@ const DashboardScreen: React.FC<Props> = ({ onNavigate, onToggleMenu, isDarkMode
 
   const [insights, setInsights] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDownloadingSyscohada, setIsDownloadingSyscohada] = useState(false);
 
   // Budget State
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
@@ -99,6 +100,34 @@ const DashboardScreen: React.FC<Props> = ({ onNavigate, onToggleMenu, isDarkMode
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadSyscohadaReports = async () => {
+    if (isDownloadingSyscohada) return;
+    setIsDownloadingSyscohada(true);
+    try {
+      const year = new Date().getFullYear();
+      const res = await reports.syscohadaZip(year);
+      const blob = new Blob([res.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+
+      const disposition = (res.headers && (res.headers['content-disposition'] || res.headers['Content-Disposition'])) as string | undefined;
+      const match = disposition?.match(/filename=\"?([^\";]+)\"?/i);
+      const filename = match?.[1] || `rapports_syscohada_${year}.zip`;
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to download SYSCOHADA reports', e);
+      alert("Impossible de télécharger les rapports SYSCOHADA pour le moment.");
+    } finally {
+      setIsDownloadingSyscohada(false);
     }
   };
 
@@ -199,12 +228,23 @@ const DashboardScreen: React.FC<Props> = ({ onNavigate, onToggleMenu, isDarkMode
       <div className="px-6">
         <div className="flex justify-between items-end mb-6">
           <h1 className="text-3xl font-bold text-primary dark:text-white">Tableau de bord</h1>
-          <button
-            onClick={fetchInsights}
-            className={`p-2 bg-primary/10 dark:bg-green-400/10 rounded-full text-primary dark:text-green-400 hover:bg-primary hover:text-white transition-colors ${loading ? 'animate-spin' : ''}`}
-          >
-            <RefreshCw size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={downloadSyscohadaReports}
+              className={`p-2 bg-primary/10 dark:bg-green-400/10 rounded-full text-primary dark:text-green-400 hover:bg-primary hover:text-white transition-colors ${isDownloadingSyscohada ? 'opacity-60 cursor-not-allowed' : ''}`}
+              title="Télécharger les rapports SYSCOHADA"
+              disabled={isDownloadingSyscohada}
+            >
+              {isDownloadingSyscohada ? <Loader2 size={20} className="animate-spin" /> : <Download size={20} />}
+            </button>
+            <button
+              onClick={fetchInsights}
+              className={`p-2 bg-primary/10 dark:bg-green-400/10 rounded-full text-primary dark:text-green-400 hover:bg-primary hover:text-white transition-colors ${loading ? 'animate-spin' : ''}`}
+              title="Rafraîchir les insights"
+            >
+              <RefreshCw size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Chart 1: Revenue vs Expenses (Bar Chart) */}

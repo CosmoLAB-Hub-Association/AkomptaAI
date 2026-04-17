@@ -39,6 +39,7 @@ media/
 .env.local
 .env.example
 .env.*.local
+.codex
 
 # IDEs
 .vscode/

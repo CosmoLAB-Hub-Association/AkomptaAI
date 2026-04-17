@@ -1,0 +1,53 @@
+{
+  "norme": "SYSCOHADA Révisé",
+  "document": "Compte de Résultat",
+  "source_page": 1050,
+  "structure": {
+    "marge_commerciale": {
+      "ref": "XA",
+      "composants": ["TA", "RA", "RB"],
+      "formule": "TA - RA + RB"
+    },
+    "chiffre_affaires": {
+      "ref": "XB",
+      "composants": ["TA", "TB", "TC", "TD"],
+      "formule": "TA + TB + TC + TD"
+    },
+    "valeur_ajoutee": {
+      "ref": "XC",
+      "formule": "(XB - RA + RB) + (TE + TF + TG + TH + TI - RC + RD - RE + RF - RG - RH - RI - RJ)"
+    },
+    "ebe": {
+      "ref": "XD",
+      "formule": "XC - RK"
+    },
+    "resultat_exploitation": {
+      "ref": "XE",
+      "formule": "XD + TJ - RL"
+    },
+    "resultat_financier": {
+      "ref": "XF",
+      "formule": "TK + TL + TM - RM - RN"
+    },
+    "resultat_activites_ordinaires": {
+      "ref": "XG",
+      "formule": "XE + XF"
+    },
+    "resultat_hao": {
+      "ref": "XH",
+      "formule": "TN + TO - RO - RP"
+    },
+    "resultat_net": {
+      "ref": "XI",
+      "formule": "XG + XH - RQ - RS"
+    }
+  },
+  "nomenclature_comptable": {
+    "TA": "701", "RA": "601", "RB": "6031", "TB": "702-704", "TC": "705-706", "TD": "707",
+    "TE": "73", "TF": "72", "TG": "71", "TH": "75", "TI": "781", "RC": "602", "RD": "6032",
+    "RE": "604-608", "RF": "6033", "RG": "61", "RH": "62-63", "RI": "64", "RJ": "65",
+    "RK": "66", "TJ": "791-799", "RL": "681-691", "TK": "77", "TL": "797", "TM": "787",
+    "RM": "67", "RN": "697", "TN": "82", "TO": "84-88", "RO": "81", "RP": "83-85",
+    "RQ": "87", "RS": "89"
+  }
+}

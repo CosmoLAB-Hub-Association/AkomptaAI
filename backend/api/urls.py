@@ -6,6 +6,7 @@ from .views import (
     RegisterView, LoginView, ProfileView, ChangePasswordView,
     ProductViewSet, TransactionViewSet, BudgetViewSet, AdViewSet,
     NotificationViewSet, SupportTicketViewSet, VoiceCommandView, AIInsightsView,
+    SyscohadaReportsDownloadView,
     analytics_overview, analytics_breakdown, analytics_kpi, analytics_activity,
     analytics_balance_history
 )
@@ -40,4 +41,7 @@ urlpatterns = [
     # ===== VOICE AI =====
     path('voice-command/', VoiceCommandView.as_view(), name='voice-command'),
     path('ai-insights/', AIInsightsView.as_view(), name='ai-insights'),
+
+    # ===== REPORTS (SYSCOHADA) =====
+    path('reports/syscohada/download/', SyscohadaReportsDownloadView.as_view(), name='syscohada-download'),
 ]

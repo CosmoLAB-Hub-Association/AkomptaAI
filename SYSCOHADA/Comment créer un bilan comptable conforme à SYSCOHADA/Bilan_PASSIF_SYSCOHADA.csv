@@ -1,0 +1,29 @@
+REF,PASSIF,Note,NET_N,NET_N_1
+CA,Capital,13,0,0
+CB,Apporteurs capital non appelé (-),13,0,0
+CD,Primes liées au capital social,14,0,0
+CE,Ecarts de réévaluation,3e,0,0
+CF,Réserves indisponibles,14,0,0
+CG,Réserves libres,14,0,0
+CH,Report à nouveau (+ ou -),14,0,0
+CJ,Résultat net de l'exercice (bénéfice + ou perte -),,0,0
+CL,Subventions d'investissement,15,0,0
+CM,Provisions réglementées,15,0,0
+CP,TOTAL CAPITAUX PROPRES ET RESSOURCES ASSIMILEES,,0,0
+DA,Emprunts et dettes financières diverses,16,0,0
+DB,Dettes de location acquisition,16,0,0
+DC,Provisions pour risques et charges,16,0,0
+DD,TOTAL DETTES FINANCIERES ET RESSOURCES ASSIMILEES,,0,0
+DF,TOTAL RESSOURCES STABLES,,0,0
+DH,Dettes circulantes HAO,5,0,0
+DI,"Clients, avances reçues",7,0,0
+DJ,Fournisseurs d'exploitation,17,0,0
+DK,Dettes fiscales et sociales,18,0,0
+DM,Autres dettes,19,0,0
+DN,Provisions pour risques à court terme,19,0,0
+DP,TOTAL PASSIF CIRCULANT,,0,0
+DQ,"Banques, crédits d'escompte",20,0,0
+DR,"Banques, établissements financiers et crédits de trésorerie",20,0,0
+DT,TOTAL TRESORERIE-PASSIF,,0,0
+DV,Ecart de conversion-Passif,12,0,0
+DZ,TOTAL GENERAL,,0,0

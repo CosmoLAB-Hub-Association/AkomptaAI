@@ -1,0 +1,43 @@
+REF,LIBELLES,NUMERO DE COMPTES,MONTANT_N,MONTANT_N_1
+TA,Ventes de marchandises,701,0,0
+RA,Achats de marchandises,601,0,0
+RB,Variation de stocks de marchandises,6031,0,0
+XA,MARGE COMMERCIALE (Somme TA à RB),,0,0
+TB,Ventes de produits fabriqués,"702, 703, 704",0,0
+TC,"Travaux, services vendus","705, 706",0,0
+TD,Produits accessoires,707,0,0
+XB,CHIFFRE D'AFFAIRES (A + B + C + D),,0,0
+TE,Production stockée (ou déstockage),73,0,0
+TF,Production immobilisée,72,0,0
+TG,Subventions d'exploitation,71,0,0
+TH,Autres produits,75,0,0
+TI,Transferts de charges d'exploitation,781,0,0
+RC,Achats de matières premières et fournitures liées,602,0,0
+RD,Variation de stocks de matières premières et fournitures liées,6032,0,0
+RE,Autres achats,"604, 605, 608",0,0
+RF,Variation de stocks d'autres approvisionnements,6033,0,0
+RG,Transports,61,0,0
+RH,Services extérieurs,"62, 63",0,0
+RI,Impôts et taxes,64,0,0
+RJ,Autres charges,65,0,0
+XC,VALEUR AJOUTEE (XB + RA + RB) + (somme TE à RJ),,0,0
+RK,Charges de personnel,66,0,0
+XD,EXCEDENT BRUT D'EXPLOITATION (XC + RK),,0,0
+TJ,"Reprises d'amortissements, de provisions et dépréciations","791, 798, 799",0,0
+RL,"Dotations aux amortissements, aux provisions et dépréciations","681, 691",0,0
+XE,RESULTAT D'EXPLOITATION (XD + TJ + RL),,0,0
+TK,Revenus financiers et assimilés,77,0,0
+TL,Reprises de provisions et dépréciations financières,797,0,0
+TM,Transferts de charges financières,787,0,0
+RM,Frais financiers et charges assimilés,67,0,0
+RN,Dotations aux provisions et aux dépréciations financières,697,0,0
+XF,RESULTAT FINANCIER (somme TK à RN),,0,0
+XG,RESULTAT DES ACTIVITES ORDINAIRES (XE + XF),,0,0
+TN,Produits des cessions d'immobilisations,82,0,0
+TO,Autres Produits HAO,"84, 86, 88",0,0
+RO,Valeurs comptables des cessions d'immobilisations,81,0,0
+RP,Autres Charges HAO,"83, 85",0,0
+XH,RESULTAT HORS ACTIVITES ORDINAIRES (somme TN à RP),,0,0
+RQ,Participation des travailleurs,87,0,0
+RS,Impôts sur le résultat,89,0,0
+XI,RESULTAT NET (XG + XH + RQ + RS),,0,0

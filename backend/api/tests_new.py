@@ -3,6 +3,8 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Notification, SupportTicket
+import zipfile
+import io
 
 User = get_user_model()
 
@@ -113,3 +115,38 @@ class SupportTicketTests(APITestCase):
         response = self.client.get(self.support_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
+
+
+class SyscohadaReportsTests(APITestCase):
+    """Tests pour l'export SYSCOHADA (ZIP)"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='syscohada@example.com',
+            password='TestPass123!',
+            first_name='John',
+            last_name='Doe'
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.url = reverse('syscohada-download')
+
+    def test_download_zip_contains_two_files(self):
+        response = self.client.get(self.url, {'year': 2026})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], 'application/zip')
+
+        zf = zipfile.ZipFile(io.BytesIO(response.content))
+        names = sorted(zf.namelist())
+        self.assertEqual(len(names), 2)
+        self.assertTrue(any(name.startswith('compte_resultat_syscohada_2026') for name in names))
+        self.assertTrue(any(name.startswith('bilan_syscohada_2026') for name in names))
+
+        # Basic content sanity
+        cr_name = next(name for name in names if name.startswith('compte_resultat_syscohada_2026'))
+        cr_csv = zf.read(cr_name).decode('utf-8')
+        self.assertIn('REF,LIBELLES,NUMERO DE COMPTES,MONTANT_N,MONTANT_N_1', cr_csv)
+
+        bilan_name = next(name for name in names if name.startswith('bilan_syscohada_2026'))
+        bilan_csv = zf.read(bilan_name).decode('utf-8')
+        self.assertIn('SECTION,REF,LIBELLE,NOTE,BRUT,AMORT/DEPREC,NET_N,NET_N_1', bilan_csv)

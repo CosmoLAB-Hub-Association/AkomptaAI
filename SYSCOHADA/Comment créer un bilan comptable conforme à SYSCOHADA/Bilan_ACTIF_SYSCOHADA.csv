@@ -1,0 +1,30 @@
+REF,ACTIF,Note,BRUT,AMORT/DEPREC,NET_N,NET_N_1
+AD,IMMOBILISATIONS INCORPORELLES,3,0,0,0,0
+AE,Frais de développement et de prospection,,0,0,0,0
+AF,"Brevets, licences, logiciels, et droits similaires",,0,0,0,0
+AG,Fonds commercial et droit au bail,,0,0,0,0
+AH,Autres immobilisations incorporelles,,0,0,0,0
+AI,IMMOBILISATIONS CORPORELLES,3,0,0,0,0
+AJ,Terrains (1),,0,0,0,0
+AK,Bâtiments (1),,0,0,0,0
+AL,"Aménagements, agencements et installations",,0,0,0,0
+AM,"Matériel, mobilier et actifs biologiques",,0,0,0,0
+AN,Matériel de transport,,0,0,0,0
+AP,Avances et acomptes versés sur immobilisations,3,0,0,0,0
+AQ,IMMOBILISATIONS FINANCIERES,4,0,0,0,0
+AR,Titres de participation,,0,0,0,0
+AS,Autres immobilisations financières,,0,0,0,0
+AZ,TOTAL ACTIF IMMOBILISE,,0,0,0,0
+BA,ACTIF CIRCULANT HAO,5,0,0,0,0
+BB,STOCKS ET ENCOURS,6,0,0,0,0
+BG,CREANCES ET EMPLOIS ASSIMILES,,0,0,0,0
+BH,Fournisseurs avances versées,17,0,0,0,0
+BI,Clients,7,0,0,0,0
+BJ,Autres créances,8,0,0,0,0
+BK,TOTAL ACTIF CIRCULANT,,0,0,0,0
+BQ,Titres de placement,9,0,0,0,0
+BR,Valeurs à encaisser,10,0,0,0,0
+BS,"Banques, chèques postaux, caisse et assimilés",11,0,0,0,0
+BT,TOTAL TRESORERIE-ACTIF,,0,0,0,0
+BU,Ecart de conversion-Actif,12,0,0,0,0
+BZ,TOTAL GENERAL,,0,0,0,0

@@ -1,0 +1,111 @@
+{
+  "norme": "SYSCOHADA Révisé",
+  "bilan": {
+    "actif": {
+      "immobilise": {
+        "incorporelles": {
+          "total_ref": "AD",
+          "elements": [
+            {"ref": "AE", "libelle": "Frais de développement et de prospection"},
+            {"ref": "AF", "libelle": "Brevets, licences, logiciels, et droits similaires"},
+            {"ref": "AG", "libelle": "Fonds commercial et droit au bail"},
+            {"ref": "AH", "libelle": "Autres immobilisations incorporelles"}
+          ]
+        },
+        "corporelles": {
+          "total_ref": "AI",
+          "elements": [
+            {"ref": "AJ", "libelle": "Terrains"},
+            {"ref": "AK", "libelle": "Bâtiments"},
+            {"ref": "AL", "libelle": "Aménagements, agencements et installations"},
+            {"ref": "AM", "libelle": "Matériel, mobilier et actifs biologiques"},
+            {"ref": "AN", "libelle": "Matériel de transport"},
+            {"ref": "AP", "libelle": "Avances et acomptes versés sur immobilisations"}
+          ]
+        },
+        "financieres": {
+          "total_ref": "AQ",
+          "elements": [
+            {"ref": "AR", "libelle": "Titres de participation"},
+            {"ref": "AS", "libelle": "Autres immobilisations financières"}
+          ]
+        },
+        "total_general_ref": "AZ"
+      },
+      "circulant": {
+        "hao": {"ref": "BA", "libelle": "ACTIF CIRCULANT HAO"},
+        "stocks": {"ref": "BB", "libelle": "STOCKS ET ENCOURS"},
+        "creances": {
+          "total_ref": "BG",
+          "elements": [
+            {"ref": "BH", "libelle": "Fournisseurs avances versées"},
+            {"ref": "BI", "libelle": "Clients"},
+            {"ref": "BJ", "libelle": "Autres créances"}
+          ]
+        },
+        "total_general_ref": "BK"
+      },
+      "tresorerie": {
+        "total_ref": "BT",
+        "elements": [
+          {"ref": "BQ", "libelle": "Titres de placement"},
+          {"ref": "BR", "libelle": "Valeurs à encaisser"},
+          {"ref": "BS", "libelle": "Banques, chèques postaux, caisse et assimilés"}
+        ]
+      },
+      "ecart_conversion": {"ref": "BU", "libelle": "Ecart de conversion-Actif"},
+      "total_general_actif_ref": "BZ"
+    },
+    "passif": {
+      "capitaux_propres": {
+        "total_ref": "CP",
+        "elements": [
+          {"ref": "CA", "libelle": "Capital"},
+          {"ref": "CB", "libelle": "Apporteurs capital non appelé", "is_negative": true},
+          {"ref": "CD", "libelle": "Primes liées au capital social"},
+          {"ref": "CE", "libelle": "Ecarts de réévaluation"},
+          {"ref": "CF", "libelle": "Réserves indisponibles"},
+          {"ref": "CG", "libelle": "Réserves libres"},
+          {"ref": "CH", "libelle": "Report à nouveau"},
+          {"ref": "CJ", "libelle": "Résultat net de l'exercice"},
+          {"ref": "CL", "libelle": "Subventions d'investissement"},
+          {"ref": "CM", "libelle": "Provisions réglementées"}
+        ]
+      },
+      "dettes_financieres": {
+        "total_ref": "DD",
+        "elements": [
+          {"ref": "DA", "libelle": "Emprunts et dettes financières diverses"},
+          {"ref": "DB", "libelle": "Dettes de location acquisition"},
+          {"ref": "DC", "libelle": "Provisions pour risques et charges"}
+        ]
+      },
+      "ressources_stables_total_ref": "DF",
+      "circulant": {
+        "total_ref": "DP",
+        "elements": [
+          {"ref": "DH", "libelle": "Dettes circulantes HAO"},
+          {"ref": "DI", "libelle": "Clients, avances reçues"},
+          {"ref": "DJ", "libelle": "Fournisseurs d'exploitation"},
+          {"ref": "DK", "libelle": "Dettes fiscales et sociales"},
+          {"ref": "DM", "libelle": "Autres dettes"},
+          {"ref": "DN", "libelle": "Provisions pour risques à court terme"}
+        ]
+      },
+      "tresorerie": {
+        "total_ref": "DT",
+        "elements": [
+          {"ref": "DQ", "libelle": "Banques, crédits d'escompte"},
+          {"ref": "DR", "libelle": "Banques, établissements financiers et crédits de trésorerie"}
+        ]
+      },
+      "ecart_conversion": {"ref": "DV", "libelle": "Ecart de conversion-Passif"},
+      "total_general_passif_ref": "DZ"
+    }
+  },
+  "formules_cles": {
+    "Fonds_de_Roulement": "Ressources Stables (DF) - Actif Immobilisé Net (AZ)",
+    "Besoin_de_Financement_Global": "Actif Circulant (BK) - Passif Circulant (DP)",
+    "Tresorerie_Nette": "Tresorerie Actif (BT) - Tresorerie Passif (DT)"
+  }
+}
