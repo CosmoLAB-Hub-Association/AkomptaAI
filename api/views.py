@@ -29,6 +29,8 @@ from .groq_service import GroqService
 from .assemblyai_service import AssemblyAIService
 import tempfile
 import os
+import io
+import zipfile
 
 User = get_user_model()
 
@@ -837,3 +839,48 @@ class AIInsightsView(APIView):
                 return Response({'insights': last_insight.content, 'cached': True, 'error_fallback': str(e)})
                 
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SyscohadaReportsDownloadView(APIView):
+    """
+    Téléchargement en 1 clic des 2 rapports SYSCOHADA (MVP):
+    - Compte de résultat (CSV)
+    - Bilan (CSV)
+
+    Réponse: un ZIP contenant exactement 2 fichiers.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from .syscohada_reports import (
+            compute_compte_resultat,
+            generate_bilan_csv,
+            generate_compte_resultat_csv,
+        )
+
+        try:
+            year = int(request.query_params.get("year") or timezone.now().year)
+        except ValueError:
+            return Response(
+                {"type": "validation_error", "errors": {"year": ["Invalid year."]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        compte = compute_compte_resultat(request.user, year)
+        compte_csv = generate_compte_resultat_csv(compte)
+        bilan_csv = generate_bilan_csv(request.user, compte)
+
+        zip_buf = io.BytesIO()
+        zip_name = f"rapports_syscohada_{year}.zip"
+        cr_name = f"compte_resultat_syscohada_{year}.csv"
+        bilan_name = f"bilan_syscohada_{year}.csv"
+
+        with zipfile.ZipFile(zip_buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr(cr_name, compte_csv)
+            zf.writestr(bilan_name, bilan_csv)
+
+        zip_buf.seek(0)
+        response = HttpResponse(zip_buf.getvalue(), content_type="application/zip")
+        response["Content-Disposition"] = f'attachment; filename="{zip_name}"'
+        return response
