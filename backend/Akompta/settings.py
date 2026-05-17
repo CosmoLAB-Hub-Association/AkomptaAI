@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
-from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +22,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-3m1!a3u-z=5k8x9y#-954&3ree&mr&$o97fuy8ds*8dox!(rvx')
+def _env(name: str, default: str | None = None) -> str | None:
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return value
+
+
+def _parse_csv(value: str | None) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+SECRET_KEY = _env("SECRET_KEY", "django-insecure-3m1!a3u-z=5k8x9y#-954&3ree&mr&$o97fuy8ds*8dox!(rvx")
 
 # decouple's built-in bool cast is strict and can crash on values like "release".
 def _parse_bool(value):
@@ -35,15 +47,16 @@ def _parse_bool(value):
     return False
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=_parse_bool)
+DEBUG = _parse_bool(_env("DEBUG", "True"))
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
+ALLOWED_HOSTS = _parse_csv(_env("ALLOWED_HOSTS", "*"))
 
 # CSRF Trusted Origins for Hugging Face and Frontend
-CSRF_TRUSTED_ORIGINS = config(
-    'CSRF_TRUSTED_ORIGINS', 
-    default='https://*.hf.space,https://*.huggingface.co,https://akompta-ai-flame.vercel.app,https://cosmolabhub-akomptabackend.hf.space', 
-    cast=Csv()
+CSRF_TRUSTED_ORIGINS = _parse_csv(
+    _env(
+        "CSRF_TRUSTED_ORIGINS",
+        "https://*.hf.space,https://*.huggingface.co,https://akompta-ai-flame.vercel.app,https://cosmolabhub-akomptabackend.hf.space",
+    )
 )
 
 
@@ -215,10 +228,11 @@ SIMPLE_JWT = {
 
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://akompta-ai-flame.vercel.app,https://cosmolabhub-akomptabackend.hf.space',
-    cast=Csv()
+CORS_ALLOWED_ORIGINS = _parse_csv(
+    _env(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://akompta-ai-flame.vercel.app,https://cosmolabhub-akomptabackend.hf.space",
+    )
 )
 
 CORS_ALLOW_CREDENTIALS = True

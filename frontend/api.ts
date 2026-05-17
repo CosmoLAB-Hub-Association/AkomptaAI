@@ -1,9 +1,8 @@
 import axios from 'axios';
 import { UserProfile, Transaction, Product, Budget, Notification } from './types';
 
-export const BASE_URL = 'https://cosmolabhub-akomptabackend.hf.space';
-
-const API_URL = `${BASE_URL}/api`;
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://127.0.0.1:8000/api';
+export const BASE_URL = API_URL.replace(/\/api\/?$/, '');
 
 const api = axios.create({
     baseURL: API_URL,

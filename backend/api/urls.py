@@ -6,6 +6,7 @@ from .views import (
     RegisterView, LoginView, ProfileView, ChangePasswordView,
     ProductViewSet, TransactionViewSet, BudgetViewSet, AdViewSet,
     NotificationViewSet, SupportTicketViewSet, VoiceCommandView, AIInsightsView,
+    SyscohadaCRMappingRuleViewSet, SyscohadaBilanBalanceViewSet, SyscohadaReportsPreviewView,
     SyscohadaReportsDownloadView,
     analytics_overview, analytics_breakdown, analytics_kpi, analytics_activity,
     analytics_balance_history
@@ -19,6 +20,8 @@ router.register(r'budgets', BudgetViewSet, basename='budget')
 router.register(r'ads', AdViewSet, basename='ad')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'support', SupportTicketViewSet, basename='support')
+router.register(r'syscohada/cr-rules', SyscohadaCRMappingRuleViewSet, basename='syscohada-cr-rule')
+router.register(r'syscohada/bilan-balances', SyscohadaBilanBalanceViewSet, basename='syscohada-bilan-balance')
 
 urlpatterns = [
     # ===== AUTH =====
@@ -43,5 +46,6 @@ urlpatterns = [
     path('ai-insights/', AIInsightsView.as_view(), name='ai-insights'),
 
     # ===== REPORTS (SYSCOHADA) =====
+    path('reports/syscohada/preview/', SyscohadaReportsPreviewView.as_view(), name='syscohada-preview'),
     path('reports/syscohada/download/', SyscohadaReportsDownloadView.as_view(), name='syscohada-download'),
 ]

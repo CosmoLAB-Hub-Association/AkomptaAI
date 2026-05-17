@@ -16,17 +16,25 @@ import json
 from django.http import HttpResponse
 from django.conf import settings
 
-from .models import Product, Transaction, Budget, Ad, Notification, SupportTicket, AIInsight
+from .models import (
+    Product,
+    Transaction,
+    Budget,
+    Ad,
+    Notification,
+    SupportTicket,
+    AIInsight,
+    SyscohadaCRMappingRule,
+    SyscohadaBilanBalance,
+)
 from .serializers import (
     UserSerializer, RegisterSerializer, ChangePasswordSerializer,
     ProductSerializer, TransactionSerializer, TransactionSummarySerializer,
     BudgetSerializer, AdSerializer, OverviewAnalyticsSerializer,
     BreakdownAnalyticsSerializer, KPISerializer, ActivityAnalyticsSerializer,
-    BalanceHistorySerializer, NotificationSerializer, SupportTicketSerializer
+    BalanceHistorySerializer, NotificationSerializer, SupportTicketSerializer,
+    SyscohadaCRMappingRuleSerializer, SyscohadaBilanBalanceSerializer,
 )
-from .gemini_service import GeminiService
-from .groq_service import GroqService
-from .assemblyai_service import AssemblyAIService
 import tempfile
 import os
 import io
@@ -586,14 +594,85 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class SyscohadaCRMappingRuleViewSet(viewsets.ModelViewSet):
+    """CRUD des règles de mapping SYSCOHADA (Compte de résultat)"""
+
+    serializer_class = SyscohadaCRMappingRuleSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["ref", "category_pattern", "name_pattern"]
+    ordering_fields = ["priority", "updated_at", "created_at"]
+    ordering = ["priority", "-updated_at"]
+
+    def get_queryset(self):
+        return SyscohadaCRMappingRule.objects.filter(user=self.request.user).order_by("priority", "-updated_at", "-id")
+
+
+class SyscohadaBilanBalanceViewSet(viewsets.ModelViewSet):
+    """CRUD des soldes SYSCOHADA (Bilan)"""
+
+    serializer_class = SyscohadaBilanBalanceSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["year", "section"]
+    search_fields = ["ref", "note"]
+    ordering_fields = ["year", "section", "ref", "updated_at"]
+    ordering = ["-year", "section", "ref"]
+
+    def get_queryset(self):
+        return SyscohadaBilanBalance.objects.filter(user=self.request.user).order_by("-year", "section", "ref", "-id")
+
+
+class SyscohadaReportsPreviewView(APIView):
+    """
+    Prévisualisation (debug/validation) des calculs SYSCOHADA.
+    Retourne: valeurs CR + bilan + liste des transactions non mappées.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from .syscohada_reports import (
+            compute_compte_resultat,
+            compute_bilan_values,
+        )
+
+        try:
+            year = int(request.query_params.get("year") or timezone.now().year)
+        except ValueError:
+            return Response(
+                {"type": "validation_error", "errors": {"year": ["Invalid year."]}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        compte = compute_compte_resultat(request.user, year)
+        bilan = compute_bilan_values(request.user, year, compte)
+        return Response(
+            {
+                "year": year,
+                "compte_resultat": {
+                    "values_n": {k: str(v) for k, v in compte.values_n.items()},
+                    "values_n_1": {k: str(v) for k, v in compte.values_n_1.items()},
+                    "unmapped_tx_ids_n": compte.unmapped_tx_ids_n,
+                    "unmapped_tx_ids_n_1": compte.unmapped_tx_ids_n_1,
+                    "resultat_net_n": str(compte.resultat_net_n),
+                },
+                "bilan": bilan,
+            }
+        )
+
 
 # ========== VOICE AI ==========
 
 class VoiceCommandView(APIView):
-    """Traitement des commandes vocales via Gemini"""
+    """Traitement des commandes vocales (STT + LLM) via Groq (et AssemblyAI STT en primaire)."""
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
+        # Lazy imports to avoid hard dependency issues in environments where optional AI SDKs are not installed.
+        from .groq_service import GroqService
+        from .assemblyai_service import AssemblyAIService
+
         audio_file = request.FILES.get('audio')
         text_command = request.data.get('text')
         
@@ -601,7 +680,6 @@ class VoiceCommandView(APIView):
             return Response({'error': 'No audio file or text command provided'}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            service = GeminiService()
             
             # Fetch user products for context
             user_products = Product.objects.filter(user=request.user)
@@ -630,7 +708,7 @@ class VoiceCommandView(APIView):
                     debug_url = f"{request.build_absolute_uri(settings.MEDIA_URL)}debug_voice/{debug_filename}"
                     print(f"DEBUG AUDIO SAVED: {debug_path}")
                     
-                    # Important: Réinitialiser le curseur après la sauvegarde pour Groq/Gemini
+                    # Important: Réinitialiser le curseur après la sauvegarde
                     audio_file.seek(0)
                 except Exception as e:
                     print(f"Error saving debug audio: {e}")
@@ -669,18 +747,24 @@ class VoiceCommandView(APIView):
                         result = groq_service.process_text_command(transcription, context_products=products_list, model="llama-3.1-8b-instant")
                     
                     if not result:
-                        # Final resort: Gemini
-                        print("All Groq LLMs failed, falling back to Gemini...")
-                        gemini_service = GeminiService()
-                        result = gemini_service.process_text_command(transcription, context_products=products_list)
+                        return Response(
+                            {
+                                "status": "error",
+                                "transcription": transcription,
+                                "message": "Traitement LLM échoué (Groq).",
+                                "debug_audio_url": debug_url,
+                            },
+                            status=status.HTTP_502_BAD_GATEWAY,
+                        )
                 else:
-                    # Fallback 2: Gemini's native voice processing
-                    print("All STT services failed, falling back to Gemini native voice command")
-                    audio_file.seek(0)
-                    audio_bytes = audio_file.read()
-                    mime_type = audio_file.content_type or 'audio/mp3'
-                    gemini_service = GeminiService()
-                    result = gemini_service.process_voice_command(audio_bytes, mime_type, context_products=products_list)
+                    return Response(
+                        {
+                            "status": "error",
+                            "message": "Transcription audio échouée (AssemblyAI + Groq).",
+                            "debug_audio_url": debug_url,
+                        },
+                        status=status.HTTP_502_BAD_GATEWAY,
+                    )
             else:
                 # Direct text command processing with the same chain
                 groq_service = GroqService()
@@ -692,9 +776,14 @@ class VoiceCommandView(APIView):
                     result = groq_service.process_text_command(text_command, context_products=products_list, model="llama-3.1-8b-instant")
                 
                 if not result:
-                    print("All Groq LLMs failed, falling back to Gemini...")
-                    gemini_service = GeminiService()
-                    result = gemini_service.process_text_command(text_command, context_products=products_list)
+                    return Response(
+                        {
+                            "status": "error",
+                            "transcription": text_command,
+                            "message": "Traitement LLM échoué (Groq).",
+                        },
+                        status=status.HTTP_502_BAD_GATEWAY,
+                    )
             
             print(f"VoiceCommandView - Result Intent: {result.get('intent')}")
             
@@ -801,10 +890,13 @@ class VoiceCommandView(APIView):
 
 
 class AIInsightsView(APIView):
-    """Génération d'insights financiers via Gemini avec mise en mémoire en base de données"""
+    """Génération d'insights financiers via Groq avec mise en mémoire en base de données"""
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
+        # Lazy import: Groq SDK may be optional depending on deployment.
+        from .groq_service import GroqService
+
         context_data = request.data.get('context', {})
         
         # Calculer un hash du contexte pour détecter les changements
@@ -821,8 +913,10 @@ class AIInsightsView(APIView):
             return Response({'insights': existing_insight.content, 'cached': True})
         
         try:
-            service = GeminiService()
+            service = GroqService()
             insights = service.process_insights(context_data)
+            if not insights:
+                raise RuntimeError("Groq insights generation failed")
             
             # Sauvegarder le nouvel insight
             AIInsight.objects.create(
@@ -838,7 +932,18 @@ class AIInsightsView(APIView):
             if last_insight:
                 return Response({'insights': last_insight.content, 'cached': True, 'error_fallback': str(e)})
                 
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Fallback ultime (sans IA) pour ne pas casser le dashboard
+            return Response(
+                {
+                    "insights": [
+                        "Analyse des ventes en cours...",
+                        "Vérification des dépenses...",
+                        "Recommandation: surveillez vos postes récurrents et votre trésorerie.",
+                    ],
+                    "cached": False,
+                    "error_fallback": str(e),
+                }
+            )
 
 
 class SyscohadaReportsDownloadView(APIView):

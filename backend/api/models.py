@@ -295,4 +295,104 @@ class AIInsight(models.Model):
 
     def __str__(self):
         return f"Insight pour {self.user.email} - {self.created_at}"
+
+
+class SyscohadaCRMappingRule(models.Model):
+    """
+    Règle de mapping Transaction -> Compte de résultat SYSCOHADA (ref).
+
+    Objectif: rendre le calcul traçable et configurable par utilisateur.
+    Le moteur tente d'appliquer la règle la plus prioritaire qui match
+    (type + catégorie/nom via contains ou regex).
+    """
+
+    MATCH_MODE_CHOICES = [
+        ("contains", "Contient"),
+        ("regex", "Regex"),
+    ]
+
+    TX_TYPE_CHOICES = [
+        ("income", "Revenu"),
+        ("expense", "Dépense"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="syscohada_cr_rules")
+
+    # Référence SYSCOHADA (ex: TA, TC, RA, RG, RH, RJ, ...)
+    ref = models.CharField(max_length=4)
+
+    # Optionnel: limiter aux revenus/dépenses
+    tx_type = models.CharField(max_length=10, choices=TX_TYPE_CHOICES, blank=True, null=True)
+
+    # Champs sur lesquels matcher
+    category_pattern = models.CharField(max_length=255, blank=True, default="")
+    name_pattern = models.CharField(max_length=255, blank=True, default="")
+    match_mode = models.CharField(max_length=20, choices=MATCH_MODE_CHOICES, default="contains")
+
+    # Plus petit = plus prioritaire
+    priority = models.PositiveIntegerField(default=100)
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Règle SYSCOHADA (CR)"
+        verbose_name_plural = "Règles SYSCOHADA (CR)"
+        ordering = ["priority", "-updated_at", "-id"]
+        indexes = [
+            models.Index(fields=["user", "is_active", "priority"]),
+            models.Index(fields=["user", "tx_type"]),
+            models.Index(fields=["user", "ref"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} -> {self.ref} (prio {self.priority})"
+
+
+class SyscohadaBilanBalance(models.Model):
+    """
+    Soldes SYSCOHADA saisis/importés (bilan) par utilisateur et exercice.
+
+    Important:
+    - Akompta n'ayant pas (encore) une comptabilité en partie double,
+      beaucoup de postes du bilan doivent être saisis (ou importés).
+    - Le système auto-calcule BS (trésorerie) et CJ (résultat net) à partir
+      des transactions + compte de résultat.
+    """
+
+    SECTION_CHOICES = [
+        ("ACTIF", "Actif"),
+        ("PASSIF", "Passif"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="syscohada_bilan_balances")
+    year = models.PositiveIntegerField()
+    section = models.CharField(max_length=10, choices=SECTION_CHOICES)
+
+    # Référence SYSCOHADA (ex: BS, BI, CA, DJ, ...)
+    ref = models.CharField(max_length=4)
+
+    # Actif: BRUT/AMORT pour calculer NET. Passif: NET uniquement.
+    brut = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    amort = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    net = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+
+    note = models.CharField(max_length=50, blank=True, default="")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Solde SYSCOHADA (Bilan)"
+        verbose_name_plural = "Soldes SYSCOHADA (Bilan)"
+        ordering = ["year", "section", "ref"]
+        unique_together = ["user", "year", "section", "ref"]
+        indexes = [
+            models.Index(fields=["user", "year", "section"]),
+            models.Index(fields=["user", "year", "ref"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} {self.year} {self.section} {self.ref}"
         

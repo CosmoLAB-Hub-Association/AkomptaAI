@@ -1,7 +1,16 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
-from .models import User, Product, Transaction, Budget, Ad, AIInsight
+from .models import (
+    User,
+    Product,
+    Transaction,
+    Budget,
+    Ad,
+    AIInsight,
+    SyscohadaCRMappingRule,
+    SyscohadaBilanBalance,
+)
 
 
 @admin.register(AIInsight)
@@ -246,3 +255,19 @@ class AdAdmin(admin.ModelAdmin):
 admin.site.site_header = "Akompta AI Administration"
 admin.site.site_title = "Akompta Admin"
 admin.site.index_title = "Bienvenue sur l'administration Akompta"
+
+
+@admin.register(SyscohadaCRMappingRule)
+class SyscohadaCRMappingRuleAdmin(admin.ModelAdmin):
+    list_display = ["user", "ref", "tx_type", "match_mode", "priority", "is_active", "updated_at"]
+    list_filter = ["is_active", "tx_type", "match_mode", "ref"]
+    search_fields = ["user__email", "ref", "category_pattern", "name_pattern"]
+    ordering = ["priority", "-updated_at"]
+
+
+@admin.register(SyscohadaBilanBalance)
+class SyscohadaBilanBalanceAdmin(admin.ModelAdmin):
+    list_display = ["user", "year", "section", "ref", "brut", "amort", "net", "updated_at"]
+    list_filter = ["year", "section", "ref"]
+    search_fields = ["user__email", "ref", "note"]
+    ordering = ["-year", "section", "ref"]

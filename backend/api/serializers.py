@@ -2,7 +2,16 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
-from .models import Product, Transaction, Budget, Ad, Notification, SupportTicket
+from .models import (
+    Product,
+    Transaction,
+    Budget,
+    Ad,
+    Notification,
+    SupportTicket,
+    SyscohadaCRMappingRule,
+    SyscohadaBilanBalance,
+)
 
 User = get_user_model()
 
@@ -127,6 +136,29 @@ class TransactionSerializer(serializers.ModelSerializer):
             'currency', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_date(self, value):
+        """
+        Protège contre les horloges clients incorrectes.
+
+        Si la date envoyée par le client est trop éloignée de l'heure serveur,
+        on remplace par `timezone.now()` (date d'enregistrement).
+
+        Override possible: passer `?allow_backdate=1` sur la requête.
+        """
+        request = self.context.get("request")
+        if request and request.query_params.get("allow_backdate") == "1":
+            return value
+
+        now = timezone.now()
+        try:
+            delta_days = abs((value - now).days)
+        except Exception:
+            return now
+
+        if delta_days > 180:
+            return now
+        return value
     
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
@@ -246,4 +278,48 @@ class SupportTicketSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class SyscohadaCRMappingRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SyscohadaCRMappingRule
+        fields = [
+            "id",
+            "ref",
+            "tx_type",
+            "category_pattern",
+            "name_pattern",
+            "match_mode",
+            "priority",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)
+
+
+class SyscohadaBilanBalanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SyscohadaBilanBalance
+        fields = [
+            "id",
+            "year",
+            "section",
+            "ref",
+            "brut",
+            "amort",
+            "net",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
         return super().create(validated_data)

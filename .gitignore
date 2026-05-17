@@ -68,3 +68,13 @@ logs/
 # OS
 Thumbs.db
 .DS_Store
+
+# Generated SYSCOHADA audits/exports (local)
+backend/Documentation/audit_inputs/
+backend/Documentation/demo_exports/
+backend/Documentation/syscohada_audit_*.md
+backend/Documentation/syscohada_demo_*.md
+backend/Documentation/syscohada_*_analysis_*.md
+
+# Accidental nested backend artifacts
+backend/backend/
