@@ -39,6 +39,7 @@ import tempfile
 import os
 import io
 import zipfile
+import re
 
 User = get_user_model()
 
@@ -675,6 +676,8 @@ class VoiceCommandView(APIView):
 
         audio_file = request.FILES.get('audio')
         text_command = request.data.get('text')
+        client_datetime = request.data.get('client_datetime')
+        client_tz_offset_minutes = request.data.get('client_tz_offset_minutes')
         
         if not audio_file and not text_command:
             return Response({'error': 'No audio file or text command provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -790,23 +793,71 @@ class VoiceCommandView(APIView):
             if result.get('intent') == 'create_transaction':
                 data = result.get('data', {})
                 print(f"VoiceCommandView - Transaction Data: {data}")
-                
-                # Ensure date is a full datetime string for TransactionSerializer
-                raw_date = data.get('date')
-                final_datetime = timezone.now() # Already aware if USE_TZ=True
-                
-                if raw_date:
+
+                transcription_text = result.get('transcription', '') or ''
+                final_datetime = timezone.now()  # fallback
+
+                # Prefer client-side timestamp (real user time) over server time.
+                # This avoids timezone mismatches and prevents AI from ever influencing the saved date.
+                def parse_client_dt(value, offset_minutes):
+                    if not value:
+                        return None
                     try:
-                        # If AI gives YYYY-MM-DD, combine with current time
-                        parsed_date = datetime.strptime(raw_date, '%Y-%m-%d').date()
-                        # Make sure we create an aware datetime to avoid warnings
-                        naive_dt = datetime.combine(parsed_date, timezone.now().time())
-                        final_datetime = timezone.make_aware(naive_dt)
-                    except:
-                        pass
+                        s = str(value).strip()
+                        # Support ISO strings ending with Z
+                        if s.endswith('Z'):
+                            s = s[:-1] + '+00:00'
+                        dt = datetime.fromisoformat(s)
+
+                        # If timezone-aware, normalize to UTC
+                        if dt.tzinfo is not None:
+                            return dt.astimezone(timezone.utc)
+
+                        # If naive, use explicit offset minutes (JS: minutes to add to local to get UTC)
+                        if offset_minutes is None or str(offset_minutes).strip() == '':
+                            return timezone.make_aware(dt, timezone=timezone.utc)
+                        off = int(offset_minutes)
+                        dt_utc = dt + timedelta(minutes=off)
+                        return timezone.make_aware(dt_utc, timezone=timezone.utc)
+                    except Exception:
+                        return None
+
+                client_dt = parse_client_dt(client_datetime, client_tz_offset_minutes)
+                if client_dt:
+                    final_datetime = client_dt
+
+                # Deterministic date parsing (explicit user dates only), WITHOUT letting the LLM decide.
+                # Base reference: client_dt if provided, otherwise server now.
+                # Supported:
+                # - keywords: aujourd'hui, hier (FR)
+                # - YYYY-MM-DD
+                # - DD/MM/YYYY or DD-MM-YYYY
+                lower_t = transcription_text.lower()
+                base_dt = client_dt or timezone.now()
+
+                if "hier" in lower_t:
+                    final_datetime = base_dt - timedelta(days=1)
+                elif "aujourd" in lower_t:
+                    final_datetime = base_dt
+                else:
+                    m_iso = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", transcription_text)
+                    m_fr = re.search(r"\b(\d{2})[/-](\d{2})[/-](\d{4})\b", transcription_text)
+                    try:
+                        if m_iso:
+                            y, mo, d = int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3))
+                            parsed_date = datetime(y, mo, d).date()
+                            # Keep time from base_dt to preserve "when" in user's local time
+                            naive_dt = datetime.combine(parsed_date, base_dt.time())
+                            final_datetime = timezone.make_aware(naive_dt) if naive_dt.tzinfo is None else naive_dt
+                        elif m_fr:
+                            d, mo, y = int(m_fr.group(1)), int(m_fr.group(2)), int(m_fr.group(3))
+                            parsed_date = datetime(y, mo, d).date()
+                            naive_dt = datetime.combine(parsed_date, base_dt.time())
+                            final_datetime = timezone.make_aware(naive_dt) if naive_dt.tzinfo is None else naive_dt
+                    except Exception:
+                        final_datetime = base_dt
                 
                 # Prepare naming with fallback to transcription
-                transcription_text = result.get('transcription', '')
                 default_name = (transcription_text[:20] + '...') if len(transcription_text) > 20 else transcription_text
                 
                 transaction_data = {

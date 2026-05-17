@@ -101,6 +101,11 @@ class GroqService:
         Inventory Context (Existing Products):
         {json.dumps(context_products)}
         
+        IMPORTANT DATE RULE:
+        - The model does NOT know today's date and MUST NOT invent dates.
+        - Always set "date" to null unless the user explicitly mentions a date.
+        - Even if the user does NOT mention a date, do NOT default to any day/month/year.
+
         Return ONLY a JSON object with this EXACT structure:
         
         If intent is 'create_transaction':
@@ -113,7 +118,7 @@ class GroqService:
                 "currency": "FCFA",
                 "category": "Descriptive category",
                 "name": "Descriptive name",
-                "date": "YYYY-MM-DD"
+                "date": "YYYY-MM-DD" or null
             }}
         }}
 

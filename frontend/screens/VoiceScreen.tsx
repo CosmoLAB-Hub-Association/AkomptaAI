@@ -71,6 +71,9 @@ const VoiceScreen: React.FC<Props> = ({
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'voice_command.mp3');
+      // Send client-side timestamp to avoid server/client timezone drift and prevent LLM date hallucinations.
+      formData.append('client_datetime', new Date().toISOString());
+      formData.append('client_tz_offset_minutes', String(new Date().getTimezoneOffset()));
 
       const response = await voice.send(formData);
       const result = response.data;
@@ -124,7 +127,11 @@ const VoiceScreen: React.FC<Props> = ({
     setIsProcessing(true);
     setStatus("Traitement du texte...");
     try {
-      const response = await voice.send({ text: manualInput });
+      const response = await voice.send({
+        text: manualInput,
+        client_datetime: new Date().toISOString(),
+        client_tz_offset_minutes: new Date().getTimezoneOffset(),
+      });
       const result = response.data;
 
       if (result.status === 'success' && (result.transaction || result.product)) {
