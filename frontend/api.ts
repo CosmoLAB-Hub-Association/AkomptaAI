@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { UserProfile, Transaction, Product, Budget, Notification } from './types';
 
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://127.0.0.1:8000/api';
+// In production, default to the deployed Hugging Face backend unless overridden by VITE_API_URL.
+// In local dev, set `VITE_API_URL=http://127.0.0.1:8000/api` in `frontend/.env.local`.
+const API_URL =
+    (import.meta as any).env?.VITE_API_URL ||
+    'https://cosmolabhub-akomptabackend.hf.space/api';
 export const BASE_URL = API_URL.replace(/\/api\/?$/, '');
 
 const api = axios.create({
