@@ -141,8 +141,11 @@ class TransactionSerializer(serializers.ModelSerializer):
         """
         Protège contre les horloges clients incorrectes.
 
-        Si la date envoyée par le client est trop éloignée de l'heure serveur,
-        on remplace par `timezone.now()` (date d'enregistrement).
+        Compare la date envoyée par le client avec `created_at` (serveur)
+        si la transaction existe déjà, sinon avec `timezone.now()`.
+
+        Si l'écart dépasse 180 jours, on remplace par la date serveur de
+        référence (created_at / timezone.now).
 
         Override possible: passer `?allow_backdate=1` sur la requête.
         """
@@ -150,14 +153,21 @@ class TransactionSerializer(serializers.ModelSerializer):
         if request and request.query_params.get("allow_backdate") == "1":
             return value
 
-        now = timezone.now()
+        # Utiliser created_at (serveur) comme référence si disponible
+        reference = (
+            self.instance.created_at
+            if self.instance and self.instance.created_at
+            else timezone.now()
+        )
+
         try:
-            delta_days = abs((value - now).days)
+            delta_days = abs((value - reference).days)
         except Exception:
-            return now
+            return reference
 
         if delta_days > 180:
-            return now
+            return reference
+
         return value
     
     def create(self, validated_data):
