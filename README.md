@@ -1,3 +1,13 @@
+---
+title: Akompta Backend
+emoji: 💰
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # Akompta AI - Application de Gestion Financière
 ## Développé par Marino ATOHOUN pour CosmoLAB Hub
 
@@ -371,3 +381,4 @@ Pour toute question ou problème:
 
 **Dernière mise à jour**: 2025-11-28  
 **Version**: 0.1.0 (MVP en développement)
+
